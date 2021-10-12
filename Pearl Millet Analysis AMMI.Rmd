@@ -1,0 +1,128 @@
+---
+title: "Pearl Millet Analysis"
+author: "Oil Stone Analytics"
+date: "19/09/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r packages, echo=FALSE}
+
+# Libraries
+#install.packages("tidyverse")
+suppressMessages(suppressWarnings(library(tidyverse)))
+suppressMessages(suppressWarnings(library(lme4)))
+suppressMessages(suppressWarnings(library(openxlsx)))
+suppressMessages(suppressWarnings(library(readxl)))
+suppressMessages(suppressWarnings(library(summarytools)))
+suppressMessages(suppressWarnings(library(cowplot)))
+  suppressMessages(suppressWarnings(library(DT)))
+suppressMessages(suppressWarnings(library(downloadthis)))
+suppressMessages(suppressWarnings(library(emmeans)))
+suppressMessages(suppressWarnings(library(metan)))
+suppressMessages(suppressWarnings(library(agricolae)))
+suppressMessages(suppressWarnings(library(variability)))
+suppressMessages(suppressWarnings(library(emmeans)))
+```
+
+
+```{r soga, echo=FALSE, fig.height = 8, fig.width = 12}
+# Data
+#pearl1 <- read_excel('C:/Users/NTANDO/Downloads/PEARL MILLET 21 STATS MULTIVARIATE FINAL FIELD BOOK LATEST 20-21.xlsx',
+ #                     sheet = 1)
+
+pearl1 <- read.csv('C:/Users/NTANDO/Downloads/Pearl millet cleaned meta.csv')
+
+```
+
+# Descriptive Statistics
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+
+pearl1$ENV <- as.factor(pearl1$ENV)
+pearl1$REP <- as.factor(pearl1$REP)
+pearl1$BLOCK <- as.factor(pearl1$BLOCK)
+pearl1$GENOTYPE.LABEL <- as.factor(pearl1$GENOTYPE.LABEL)
+
+
+#checking data
+data <- pearl1[, c(7:20)]
+j <- desc_stat(data) # descriptives
+j %>%
+  datatable(extensions = 'Buttons',
+            options = list(dom = 'lfrtipB',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
+
+
+
+
+```
+
+
+
+# AMMI
+
+The list of variables are in the following order **("DMA", "DMP", "EXTN", "GYD", "HPC", "LL", "LW", "NL", "NPRDT", "PHT")**
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# AMMI
+
+vars <- list("DMA", "DMP", "EXTN", "GYD", "HPC", "LL", "LW", "NL", "NPRDT", "PHT")
+
+
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, DMA, console = FALSE))
+ammi_model$ANOVA
+#plot(ammi_model)
+#plot(ammi_model, type=2, number = TRUE)
+#plot(ammi_model, first = 0, second = 1, number = TRUE)
+
+vars <- list("DMA", "DMP", "EXTN", "GYD", "HPC", "LL", "LW", "NL", "NPRDT", "PHT")
+
+#DMP
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, DMP, console = FALSE))
+ammi_model$ANOVA
+
+#EXTN
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, EXTN, console = FALSE))
+ammi_model$ANOVA
+
+#GYD
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, GYD, console = FALSE))
+ammi_model$ANOVA
+
+#HPC
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, HPC, console = FALSE))
+ammi_model$ANOVA
+
+#LL
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, LL, console = FALSE))
+ammi_model$ANOVA
+
+#LW
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, LW, console = FALSE))
+ammi_model$ANOVA
+
+#NL
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, NL, console = FALSE))
+ammi_model$ANOVA
+
+#NPRDT
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, NPRDT, console = FALSE))
+ammi_model$ANOVA
+
+#PHT
+ammi_model <- with(pearl1, AMMI(ENV, GENOTYPE.LABEL, REP, PHT, console = FALSE))
+ammi_model$ANOVA
+
+
+```

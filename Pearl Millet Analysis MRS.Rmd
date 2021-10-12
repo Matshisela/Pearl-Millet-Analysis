@@ -1,0 +1,275 @@
+---
+title: "Pearl Millet Analysis"
+author: "Oil Stone Analytics"
+date: "19/09/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r packages, echo=FALSE}
+
+# Libraries
+#install.packages("tidyverse")
+suppressMessages(suppressWarnings(library(tidyverse)))
+suppressMessages(suppressWarnings(library(lme4)))
+suppressMessages(suppressWarnings(library(openxlsx)))
+suppressMessages(suppressWarnings(library(readxl)))
+suppressMessages(suppressWarnings(library(summarytools)))
+suppressMessages(suppressWarnings(library(cowplot)))
+  suppressMessages(suppressWarnings(library(DT)))
+suppressMessages(suppressWarnings(library(downloadthis)))
+suppressMessages(suppressWarnings(library(emmeans)))
+suppressMessages(suppressWarnings(library(metan)))
+suppressMessages(suppressWarnings(library(agricolae)))
+suppressMessages(suppressWarnings(library(variability)))
+```
+
+
+```{r soga, echo=FALSE, fig.height = 8, fig.width = 12}
+# Data
+pearl1 <- read_excel('C:/Users/NTANDO/Downloads/PEARL MILLET 21 STATS MULTIVARIATE FINAL FIELD BOOK LATEST 20-21.xlsx',
+                      sheet = 1)
+
+
+```
+
+# Descriptive Statistics
+
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+
+pearl1$ENV <- as.factor(pearl1$ENV)
+pearl1$REP <- as.factor(pearl1$REP)
+pearl1$BLOCK <- as.factor(pearl1$BLOCK)
+pearl1$`GENOTYPE LABEL` <- as.factor(pearl1$`GENOTYPE LABEL`)
+
+
+#checking data
+data <- pearl1[, c(7:20)]
+j <- desc_stat(data) # descriptives
+j %>%
+  datatable(extensions = 'Buttons',
+            options = list(dom = 'lfrtipB',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
+
+# Outliers
+#for (i in colnames(data)) {
+#  find_outliers(data[[i]], plots = TRUE)
+#}
+```
+
+# Data Analysis
+
+For each of the variables above:
+
+MEAN: The grand mean.
+
+CV: coefficient of variation.
+
+h2: broad-sense heritability.
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# ANOVA individual
+
+model1 <- lmer(GYD ~ REP + (1|`GENOTYPE LABEL`) + (1|ENV) + (1|REP:BLOCK), data= pearl1)
+
+
+anova(model1)
+summary(model1)
+
+par(mfrow = c(2, 2))
+hist((residuals(model1)), col = "darkgreen", xlab = "Residual", main = "Histogram of Residuals")
+qqnorm(residuals(model1)); qqline(residuals(model1))
+plot(fitted(model1), residuals(model1))
+plot(cooks.distance(model1))
+
+
+
+pearl <- pearl1[, -c(2, 6)] 
+ind_an <- anova_ind(pearl, 
+                    env = ENV, 
+                    gen = `GENOTYPE LABEL`, 
+                    rep = REP, 
+                    block = BLOCK,
+                    resp = everything()) # Resolvable 
+# mean for each environment
+get_model_data(ind_an)
+
+ind_an$DMA$individual %>%
+  select(ENV, MEAN, CV, h2)
+  
+  
+ind_an$DMP$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$PHT$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$EXTN$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$NL$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$ST$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$PRDT$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$NPRDT$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$HPC$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$SL$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$RL$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$GYD$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$LL$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+ind_an$LW$individual %>%
+  select(ENV, MEAN, CV, h2)
+
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# ANOVA joint
+joint_an <- anova_joint(pearl, 
+                    env = ENV, 
+                    gen = `GENOTYPE LABEL`, 
+                    rep = REP, 
+                    block = BLOCK,
+                    resp = everything()) # Resolvable 
+
+#Predicted values
+#k <- get_model_data(joint_an)
+
+#k %>%
+#  datatable(extensions = 'Buttons',
+#            options = list(dom = 'lfrtipB',
+#                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                           lengthMenu = list(c(10,25,50,-1),
+#                                             c(10,25,50,"All"))))
+
+# Details
+j <- get_model_data(joint_an, "details")
+j %>%
+  datatable(extensions = 'Buttons',
+            options = list(dom = 'lfrtipB',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
+
+```
+
+
+
+# Genotype Winners
+For each environment per each variable
+```{r , echo=FALSE, warning=FALSE, message=FALSE}
+winners <- ge_winners(pearl, 
+                        env = ENV, 
+                        gen = `GENOTYPE LABEL`, 
+                        #rep = REP, 
+                        #block = BLOCK,
+                      type = "winners",
+                        resp = everything()) # Resolvable 
+
+for (i in colnames(winners)) {
+  print(winners[[i]])
+}
+
+
+```
+
+
+# Phenotypic, Genotypic Correlations & Path analysis
+Environment 1
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+pearl_1 <- pearl1 %>%
+  filter(ENV == 1) 
+
+pheno.corr(pearl_1[7:20], pearl_1$`GENOTYPE LABEL`, pearl_1$REP) # Phenotypic Correlations
+geno.corr(pearl_1[7:20], pearl_1$`GENOTYPE LABEL`, pearl_1$REP) #genotypic correlations
+pheno.path(pearl_1[18], pearl_1[c(7:17, 19:20)], pearl_1$`GENOTYPE LABEL`, pearl_1$REP) #Path Analysis
+
+```
+
+
+Environment 2
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+pearl_2 <- pearl1 %>%
+  filter(ENV == 2) 
+
+pheno.corr(pearl_2[7:20], pearl_2$`GENOTYPE LABEL`, pearl_2$REP) # Phenotypic Correlations
+geno.corr(pearl_2[7:20], pearl_2$`GENOTYPE LABEL`, pearl_2$REP) #genotypic correlations
+pheno.path(pearl_2[18], pearl_2[c(7:17, 19:20)], pearl_2$`GENOTYPE LABEL`, pearl_2$REP) #Path Analysis
+
+```
+
+
+Environment 3
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+pearl_3 <- pearl1 %>%
+  filter(ENV == 3) 
+
+pheno.corr(pearl_3[7:20], pearl_3$`GENOTYPE LABEL`, pearl_3$REP) # Phenotypic Correlations
+geno.corr(pearl_3[7:20], pearl_3$`GENOTYPE LABEL`, pearl_3$REP) #genotypic correlations
+pheno.path(pearl_3[18], pearl_3[c(7:17, 19:20)], pearl_3$`GENOTYPE LABEL`, pearl_3$REP) #Path Analysis
+```
+
+Environment 4
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+pearl_4 <- pearl1 %>%
+  filter(ENV == 4) 
+
+pheno.corr(pearl_4[7:20], pearl_4$`GENOTYPE LABEL`, pearl_4$REP) # Phenotypic Correlations
+geno.corr(pearl_4[7:20], pearl_4$`GENOTYPE LABEL`, pearl_4$REP) #genotypic correlations
+pheno.path(pearl_4[18], pearl_4[c(7:17, 19:20)], pearl_4$`GENOTYPE LABEL`, pearl_4$REP) #Path Analysis
+```
+
+### Correlation Plots
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+m <- corr_coef(data, width_greater_than(2))
+plot(m)
+corr_plot(data, width_greater_than(2))
+
+```
+
+# AMMI
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# AMMI
+
+ammi_model <- with(pearl1, AMMI(ENV, `GENOTYPE LABEL`, REP, GYD, console = FALSE))
+ammi_model$ANOVA
+plot(ammi_model)
+plot(ammi_model, type=2, number = TRUE)
+plot(ammi_model, first = 0, second = 1, number = TRUE)
+
+```
